@@ -1,4 +1,5 @@
-from parser_config import Parser, Hub, Connections
+from parser_config import Parser
+from classes_types import Hub, Connections
 import sys
 
 
