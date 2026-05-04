@@ -1,6 +1,7 @@
 from parser_config import Parser
 from classes_types import Hub, Connections
 import sys
+# from graphic_interface import ...
 
 
 if __name__ == "__main__":

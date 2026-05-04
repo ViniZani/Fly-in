@@ -7,7 +7,7 @@ app.title('Fly-In: Drones Solver System')
 app.geometry('2500x1500')
 
 # Creation of the fiels
-label_graph = ctk.CTkLabel(app, text='map', font=('Bold', 30))
+label_graph = ctk.CTkLabel(app, text='map.txt', font=('Bold', 30))
 label_graph.place(x=942, y=1123)
 graph_display = ctk.CTkFrame(master=app, width=1900, height=1100,
                              corner_radius=10)
