@@ -13,7 +13,6 @@ class App(ctk.CTk):
         self.geometry('1200x800')
 
         # Configurando a responsividade (Grid)
-        # Coluna 0 (Mapa) expande mais que a Coluna 1 (Menu)
         self.grid_columnconfigure(0, weight=4)
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -71,7 +70,7 @@ class App(ctk.CTk):
 
     def create_hub(self, x, y, nome, fill_color="#1f6aa5"):
         """ Desenha um círculo representando um Hub """
-        r = 30
+        r = 15
 
         self.canvas_graph.create_oval(
             x-r, y-r, x+r, y+r,
