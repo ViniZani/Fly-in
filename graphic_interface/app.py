@@ -25,7 +25,7 @@ class App(ctk.CTk):
         self.graph_display = ctk.CTkFrame(self, corner_radius=10)
         self.graph_display.grid(row=0, column=0,
                                 padx=20, pady=20, sticky="nsew")
-        img = Image.open("C:/Users/viniz/Downloads/drone.png").resize((40, 40))
+        img = Image.open("graphic_interface/drone_2d.webp").resize((40, 40))
         self.drone_img = ImageTk.PhotoImage(img)
 
         # Canvas pad
