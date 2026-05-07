@@ -10,6 +10,9 @@ class Hub:
         self.max_drones = max_drones
         self.connections: list['Connections'] = []
 
+    def __repr__(self):
+        return f"{self.name} {self.x} {self.y}: [{self.zone} {self.color} {self.max_drones}]"
+
 
 class Connections:
     "representa cada aresta do grafo, conectando 2 ou mais zonas"
@@ -17,6 +20,9 @@ class Connections:
         self.target = target
         self.max_link_capacity = max_link_capacity
         self.current_occupancy = 0
+
+    def __repr__(self):
+        return f"{self.target.name} (max_link): {self.max_link_capacity}"
 
 
 class Graph:

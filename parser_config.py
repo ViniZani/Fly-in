@@ -5,7 +5,7 @@ class Parser:
     def process_data(self, line: str) -> dict:
         _hub = {'name': None, 'x': None, 'y': None,
                 'zone': 'normal', 'color': None,
-                'max_drones': None}
+                'max_drones': 1}
         try:
             has_meta = False
             if '[' in line:
