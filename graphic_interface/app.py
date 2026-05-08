@@ -60,8 +60,18 @@ class App(ctk.CTk):
             font=("Arial", 13, "bold"))
         self.label_total_drones.pack(pady=10, padx=10)
 
-        # Catch mouse click
+        self.btn_start = ctk.CTkButton(
+            self.menu_control,
+            text="Solver Path Simulation",
+            command=self.on_start_click
+            )
+        self.btn_start.pack(pady=10, padx=10, fill="x")
+
+        # Catch mouse click (for debug)
         self.canvas_graph.bind('<Button-1>', self.capturar_clique)
+    # Click logic botom
+    def on_start_click(self):
+        pass
 
     def create_vertex(self, x1, y1, x2, y2, cor="gray"):
         """ Desenha uma linha entre dois pontos """
@@ -70,7 +80,7 @@ class App(ctk.CTk):
 
     def create_hub(self, x, y, nome, fill_color="#1f6aa5"):
         """ Desenha um círculo representando um Hub """
-        r = 15
+        r = 25
 
         self.canvas_graph.create_oval(
             x-r, y-r, x+r, y+r,
@@ -136,36 +146,17 @@ class App(ctk.CTk):
         # Drones
         x_start, y_start = graph_points[start_hub.name]
         for drone in list_drones:
-            self.canvas_graph.create_image(x_start, y_start,
-                                           image=self.drone_img)
+            x, y = graph_points[drone.current_zone.name]
+            drone.canvas_id = self.canvas_graph.create_image(
+                x, y, image=self.drone_img)
+        return graph_points
 
-    """def desenhar_grafo_exemplo(self):
-        # Aplica as funções de desenho com os pontos definidos
-        # Definição dos pontos (coordenadas para o Canvas)
-        start_point = (100, 400)
-        ponto_a = (300, 150)
-        ponto_b = (300, 650)
-        ponto_c = (600, 400)
-        ponto_d = (300, 400)
-        ponto_f = (600, 650)
-        end_point = (900, 100)
-
-        # 1. Desenha as Conexões (Vertex)
-        self.create_vertex(*start_point, *ponto_a)
-        self.create_vertex(*start_point, *ponto_b)
-        self.create_vertex(*start_point, *ponto_d)
-        self.create_vertex(*ponto_d, *ponto_b)
-        self.create_vertex(*ponto_d, *ponto_f)
-        self.create_vertex(*ponto_a, *ponto_c)
-        self.create_vertex(*ponto_b, *ponto_f)
-        self.create_vertex(*ponto_f, *ponto_c)
-        self.create_vertex(*ponto_c, *end_point)
-
-        # 2. Desenha os Hubs
-        self.create_hub(*start_point, "Start Hub", "#3ab903")
-        self.create_hub(*ponto_a, "Zone 01")
-        self.create_hub(*ponto_b, "Zone 02")
-        self.create_hub(*ponto_c, "Zone 03")
-        self.create_hub(*ponto_d, "Zone 04")
-        self.create_hub(*ponto_f, "Zone 05")
-        self.create_hub(*end_point, "End hub", "#e67e22")"""
+    def animate(self, list_drones, graph_points, simulator):
+        # primeiro desenha posição atual
+        for drone in list_drones:
+            x, y = graph_points[drone.current_zone.name]
+            self.canvas_graph.coords(drone.canvas_id, x, y)
+        # depois move para próximo turno
+        if not all(d.at_goal for d in list_drones):
+            simulator.update_drones(list_drones)
+            self.after(500, lambda: self.animate(list_drones, graph_points, simulator))

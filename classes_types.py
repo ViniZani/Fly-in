@@ -42,13 +42,24 @@ class Graph:
 
 
 class Drone:
-    def __init__(self, id: int, start: Hub):
+    def __init__(self, id: int, start: Hub, path):
         self.id = id
         self.current_zone = start
-        self.next_zone = None
         self.at_goal = False
-        self.path = []
+        self.path = path
+        self.path_index = 0
+
+    def move(self):
+        if self.at_goal is False and self.path_index < len(self.path) - 1:
+            self.path_index += 1
+            self.current_zone = self.path[self.path_index]
+        if self.current_zone == self.path[-1]:
+            self.at_goal = True
 
 
 class Simulation:
-    pass
+    def update_drones(self, list_drones):
+        for d in list_drones:
+            print(vars(d))
+            d.move()
+            print("after move: ", vars(d))

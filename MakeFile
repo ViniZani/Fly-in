@@ -18,7 +18,8 @@ all: run
 install:
 	python3 -m venv $(VENV_DIR)
 	$(PIP) install --upgrade pip
-	$(PIP) install customtkinter  
+	$(PIP) install customtkinter
+	$(PIP) install Pillow
 	$(PIP) install flake8 mypy build
 	$(PIP) install -e .
 
