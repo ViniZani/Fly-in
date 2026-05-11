@@ -9,9 +9,11 @@ class Hub:
         self.color = color
         self.max_drones = max_drones
         self.connections: list['Connections'] = []
+        self.current_occupancy = 0
 
     def __repr__(self):
-        return f"{self.name} {self.x} {self.y}: [{self.zone} {self.color} {self.max_drones}]"
+        return (f"{self.name} {self.x} {self.y}: "
+                "[{self.zone} {self.color} {self.max_drones}]")
 
 
 class Connections:
@@ -50,16 +52,27 @@ class Drone:
         self.path_index = 0
 
     def move(self):
-        if self.at_goal is False and self.path_index < len(self.path) - 1:
+        if self.at_goal or self.path_index >= len(self.path) - 1:
+            return
+        next_hub = self.path[self.path_index + 1]
+        conn = None
+        for c in self.current_zone.connections:
+            if c.target == next_hub:
+                conn = c
+                break
+        if conn and (next_hub.current_occupancy < next_hub.max_drones and
+                     conn.current_occupancy < conn.max_link_capacity):
+            self.current_zone.current_occupancy -= 1
+            conn.current_occupancy += 1
             self.path_index += 1
-            self.current_zone = self.path[self.path_index]
-        if self.current_zone == self.path[-1]:
-            self.at_goal = True
+            self.current_zone = next_hub
+            next_hub.current_occupancy += 1
+            conn.current_occupancy -= 1
+            if self.current_zone == self.path[-1]:
+                self.at_goal = True
 
 
 class Simulation:
     def update_drones(self, list_drones):
         for d in list_drones:
-            print(vars(d))
             d.move()
-            print("after move: ", vars(d))

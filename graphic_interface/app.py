@@ -84,6 +84,7 @@ class App(ctk.CTk):
         self.btn_start.pack(pady=10, padx=10, fill="x")
         # Catch mouse click (for debug)
         self.canvas_graph.bind('<Button-1>', self.capturar_clique)
+
     # Click logic botom
     def on_start_click(self):
         pass
@@ -105,6 +106,11 @@ class App(ctk.CTk):
             x, y+45, text=nome, fill="#191c1f",
             font=("Arial", 10, "bold")
         )
+        if nome == 'goal':
+            self.canvas_graph.create_text(
+                x, y+65, text="Drones occuped: 0", fill="#191c1f",
+                font=("Arial", 10, "bold")
+            )
 
     def capturar_clique(self, event):
         print(f"Posição no Canvas: x={event.x}, y={event.y}")
@@ -142,8 +148,15 @@ class App(ctk.CTk):
 
         # Normalization
         for name, hub in list_class_hubs.items():
-            x_normal = zero_x + (hub.x - x_min) / x_range * area_x
-            y_normal = centro_y - (hub.y - y_min) / y_range * (area_y / 2)
+            x_abs_max = max(abs(x_max), abs(x_min)) or 1
+            y_abs_max = max(abs(y_max), abs(y_min)) or 1
+            x_scale = area_x / x_abs_max
+            y_scale = (area_y / 2) / y_abs_max
+            x_normal = zero_x + hub.x * x_scale
+            y_normal = centro_y - hub.y * y_scale
+
+            # x_normal = zero_x + (hub.x - x_min) / x_range * area_x
+            # y_normal = centro_y - (hub.y - y_min) / y_range * (area_y / 2)
             graph_points[name] = (x_normal, y_normal)
 
         # Connections
@@ -167,11 +180,20 @@ class App(ctk.CTk):
         return graph_points
 
     def animate(self, list_drones, graph_points, simulator):
-        # primeiro desenha posição atual
+        for drone in list_drones:
+            print(f"{drone.id}: {drone.current_zone.name} at_goal={drone.at_goal}") # noqa
+        # Draw the current position
         for drone in list_drones:
             x, y = graph_points[drone.current_zone.name]
             self.canvas_graph.coords(drone.canvas_id, x, y)
-        # depois move para próximo turno
-        if not all(d.at_goal for d in list_drones):
+        # Moves to the next turn
+        for d in list_drones:
+            drones_arrived = [d.at_goal]
+        all_arrived = all(drones_arrived)
+        if not all_arrived:
             simulator.update_drones(list_drones)
-            self.after(500, lambda: self.animate(list_drones, graph_points, simulator))
+            self.current_turn += 1
+            self.label_turns.configure(text="Total Turns:"
+                                       f"{self.current_turn}")
+            self.after(500, lambda: self.animate(list_drones,
+                                                 graph_points, simulator))

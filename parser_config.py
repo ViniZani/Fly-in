@@ -38,11 +38,14 @@ class Parser:
                                              "following types: 'normal',"
                                              "'blocked', 'restricted',"
                                              " 'priority'")
+                        else:
+                            _hub[k] = v
                         if k == "max_drones":
                             if not v.isdigit() or int(v) < 1:
                                 raise ValueError("max_drones must be a "
                                                  "positive integer")
-                        _hub[k] = v
+                            else:
+                                _hub[k] = int(v)
                     else:
                         raise ValueError("Metadata must have the "
                                          "following sintax: type=value")
@@ -139,7 +142,7 @@ class Parser:
                                             raise ValueError("max_drones must"
                                                              " be a positive"
                                                              "integer")
-                                    connection["max_link_capacity"] = v
+                                    connection["max_link_capacity"] = int(v)
                                 else:
                                     raise ValueError("Metadata must have the "
                                                      "following sintax: "

@@ -39,6 +39,7 @@ if __name__ == "__main__":
          end_hub, list_conects) = parser.get_data()
         start_hub = Hub(**start_hub)
         end_hub = Hub(**end_hub)
+        end_hub.max_drones = 10*nb_drones
         # dijskra(start_hub, end_hub)
 
         list_class_hubs = {}
@@ -72,7 +73,7 @@ if __name__ == "__main__":
 
         simulator = Simulation()
         # for i in range(len(path)):
-        #    simulator.update_drones(list_drones)
+        #   simulator.update_drones(list_drones)
     app = App()
 
     def start():
