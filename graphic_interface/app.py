@@ -60,13 +60,28 @@ class App(ctk.CTk):
             font=("Arial", 13, "bold"))
         self.label_total_drones.pack(pady=10, padx=10)
 
+        # Total Turns Count
+        self.turns_frame = ctk.CTkFrame(
+            self.menu_control,
+            fg_color="gray25",
+            corner_radius=5)
+        self.turns_frame.pack(padx=10, pady=10, fill="x")
+
+        self.current_turn = 0
+        self.label_turns = ctk.CTkLabel(
+            self.turns_frame,
+            text=f"Total Turns: {self.current_turn}",
+            font=("Arial", 13, "bold"),
+        )
+        self.label_turns.pack(pady=10, padx=10)
+
+        # Initialize animattion bottom
         self.btn_start = ctk.CTkButton(
             self.menu_control,
             text="Solver Path Simulation",
             command=self.on_start_click
             )
         self.btn_start.pack(pady=10, padx=10, fill="x")
-
         # Catch mouse click (for debug)
         self.canvas_graph.bind('<Button-1>', self.capturar_clique)
     # Click logic botom

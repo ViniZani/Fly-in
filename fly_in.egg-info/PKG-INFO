@@ -1,0 +1,8 @@
+Metadata-Version: 2.4
+Name: fly-in
+Version: 0.1.0
+Summary: A graph solver system. Shows visual graphs and solve then with animate.
+Author: vzani-st
+Requires-Python: >=3.10
+Requires-Dist: customtkinter
+Requires-Dist: Pillow

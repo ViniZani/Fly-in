@@ -1,0 +1,15 @@
+[project]
+name = "fly-in"
+version = "0.1.0"
+description = "A graph solver system. Shows visual graphs and solve then with animate."
+authors = [
+    {name = "vzani-st"}
+]
+requires-python = ">=3.10"
+dependencies = ["customtkinter", "Pillow",]
+
+[tool.setuptools]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
