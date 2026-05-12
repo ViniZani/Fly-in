@@ -74,6 +74,12 @@ class Drone:
 
 class Simulation:
     def update_drones(self, list_drones):
+        turn_moves = []
         for d in list_drones:
+            previous_zone = d.current_zone
             d.move()
-            # print(f"{d.id}-{d.current_zone}")
+            if d.current_zone != previous_zone:
+                turn_moves.append(f"{d.id}-{d.current_zone.name}")
+                # print(f"{d.id}-{d.current_zone}")
+        if turn_moves:
+            print(" ".join(turn_moves))
