@@ -12,18 +12,21 @@ class Solver_path:
         """começa no start
         pra cada hub da fila, percorre o hub.connections
         se o vizinho (em conn.target nao for visitado, add na fila)"""
-        visited = set()
         queue = []
-        visited.add(start_hub)
-        queue.append((start_hub, [start_hub]))
-        for hub, path in queue:
+        all_paths = []
+        queue.append((start_hub, [start_hub], {start_hub}))
+        for hub, path, visited in queue:
             for conect in hub.connections:
                 neig = conect.target
+                if neig.zone == 'blocked':
+                    continue
                 if neig.name == end_hub.name:
-                    return path + [neig]
-                if neig not in visited:
-                    visited.add(neig)
-                    queue.append((neig, path + [neig]))
+                    all_paths.append(path + [neig])
+                elif neig not in visited:
+                    new_visited = visited.copy()
+                    new_visited.add(neig)
+                    queue.append((neig, path + [neig], new_visited))
+        return all_paths
 
     def calculate_dist(p1, p2):
         return math.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
@@ -40,7 +43,6 @@ if __name__ == "__main__":
         start_hub = Hub(**start_hub)
         end_hub = Hub(**end_hub)
         end_hub.max_drones = 10*nb_drones
-        # dijskra(start_hub, end_hub)
 
         list_class_hubs = {}
         list_class_hubs[start_hub.name] = start_hub
@@ -59,21 +61,23 @@ if __name__ == "__main__":
     # Calls the Solver path objtc
         print([conn.target.name for conn in start_hub.connections])
         algo = Solver_path
-        # for i in list_class_hubs:
-        #   if i.zone = 'normal':
-        #       algo.dijska
-        #   else:
-        path = algo.bfs(list_class_hubs, start_hub, end_hub)
-        print([h.name for h in path])
+        # for k in list_class_hubs:
+        #    print("o i é", list_class_hubs[k])
+        #    if list_class_hubs[k].zone != 'normal':
+        #        path = algo.dijska
+        #    else:
+        all_paths = algo.bfs(list_class_hubs, start_hub, end_hub)
+        print(all_paths)
 
         list_drones = []
         for d in range(1, nb_drones+1):
-            drone = Drone(f"D{d}", start_hub, path)
+            drone = Drone(f"D{d}", start_hub, all_paths)
+            caminho = all_paths[(d - 1) % len(all_paths)]
+            drone = Drone(f"D{d}", start_hub, caminho)
             list_drones.append(drone)
 
         simulator = Simulation()
-        # for i in range(len(path)):
-        #   simulator.update_drones(list_drones)
+    # Initialize the Graphic visualization
     app = App()
 
     def start():
