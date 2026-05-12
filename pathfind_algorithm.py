@@ -1,4 +1,3 @@
-import math
 from parser_config import Parser
 from classes_types import Hub, Graph, Drone, Simulation
 import sys
@@ -28,11 +27,25 @@ class Solver_path:
                     queue.append((neig, path + [neig], new_visited))
         return all_paths
 
-    def calculate_dist(p1, p2):
-        return math.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
-
-    def dijskra(start, end):
-        pass
+    def dijkstra(list_class_hubs, start_hub, end_hub) -> list:
+        queue = []
+        all_paths = []
+        queue = [(0, start_hub, [start_hub], {start_hub})]
+        zone_cost = {'normal': 1, 'priority': 1, 'restricted': 2}
+        for curr_cost, hub, path, visited in queue:
+            for conect in hub.connections:
+                neig = conect.target
+                if neig.zone == 'blocked':
+                    continue
+                if neig.name == end_hub.name:
+                    all_paths.append((curr_cost + 1, path + [neig]))
+                elif neig not in visited:
+                    new_visited = visited.copy()
+                    new_visited.add(neig)
+                    new_cost = curr_cost + zone_cost.get(neig.zone, 1)
+                    queue.append((new_cost, neig, path + [neig], new_visited))
+                    queue.sort(key=lambda x: x[0])
+        return [path for cost, path in all_paths]
 
 
 if __name__ == "__main__":
@@ -58,25 +71,32 @@ if __name__ == "__main__":
         # for i in list_class_hubs:
             # print(vars(list_class_hubs[i]))
 
-    # Calls the Solver path objtc
+    # Calls the Solver path class, and check which algo to use
         print([conn.target.name for conn in start_hub.connections])
         algo = Solver_path
-        # for k in list_class_hubs:
-        #    print("o i é", list_class_hubs[k])
-        #    if list_class_hubs[k].zone != 'normal':
-        #        path = algo.dijska
-        #    else:
-        all_paths = algo.bfs(list_class_hubs, start_hub, end_hub)
+        is_weigthed = False
+        for k in list_class_hubs:
+            if list_class_hubs[k].zone == 'restricted':
+                is_weigthed = True
+                break
+
+        if is_weigthed is True:
+            print("USANDO DIJKSTRA")
+            all_paths = algo.dijkstra(list_class_hubs, start_hub, end_hub)
+        else:
+            print("USANDO BFS")
+            all_paths = algo.bfs(list_class_hubs, start_hub, end_hub)
         print(all_paths)
 
         list_drones = []
         for d in range(1, nb_drones+1):
             drone = Drone(f"D{d}", start_hub, all_paths)
-            caminho = all_paths[(d - 1) % len(all_paths)]
-            drone = Drone(f"D{d}", start_hub, caminho)
+            path = all_paths[(d - 1) % len(all_paths)]
+            drone = Drone(f"D{d}", start_hub, path)
             list_drones.append(drone)
 
         simulator = Simulation()
+
     # Initialize the Graphic visualization
     app = App()
 

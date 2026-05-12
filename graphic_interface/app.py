@@ -126,8 +126,6 @@ class App(ctk.CTk):
         all_y = [hub.y for hub in list_class_hubs.values()]
         x_min, x_max = min(all_x), max(all_x)
         y_min, y_max = min(all_y), max(all_y)
-        x_range = x_max - x_min if x_max != x_min else 1
-        y_range = y_max - y_min if y_max != y_min else 1
 
         padding_x = 70
         padding_y = 70
@@ -180,8 +178,8 @@ class App(ctk.CTk):
         return graph_points
 
     def animate(self, list_drones, graph_points, simulator):
-        for drone in list_drones:
-            print(f"{drone.id}: {drone.current_zone.name} at_goal={drone.at_goal}") # noqa
+        # for drone in list_drones:
+            # print(f"{drone.id}: {drone.current_zone.name} at_goal={drone.at_goal}") # noqa
         # Draw the current position
         for drone in list_drones:
             x, y = graph_points[drone.current_zone.name]

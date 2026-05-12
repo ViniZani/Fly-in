@@ -76,3 +76,4 @@ class Simulation:
     def update_drones(self, list_drones):
         for d in list_drones:
             d.move()
+            # print(f"{d.id}-{d.current_zone}")
