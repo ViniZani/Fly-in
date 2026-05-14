@@ -43,7 +43,7 @@ class App(ctk.CTk):
         # Menu's Title
         self.label_menu = ctk.CTkLabel(
             self.menu_control,
-            text="Controle de Drones",
+            text="Drones Controls Menu",
             font=("Arial", 20, "bold")
         )
         # Data's Menu objtects

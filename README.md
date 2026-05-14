@@ -100,6 +100,9 @@ After studing, i found the BFS and Dijskra algos, but the big O help me witch i 
 ##  Visual Representation Feature
 For help and enhance the user experience, i chose use the lib Customtkinter, a lib focus on create interative interfaces using an extra window to show the interface. I separate the window in two points. One, bigger, for the representation of the graph, create the hubs, the connections, the drones. and the other, one vertical menu to show important data, like the total numbers of drones, how many drones arrived at the goal, the total of turns the was needed in real time uptaded. And one bottom in this menu to start and reset the animation of the drones moves through the hubs and connections and counting turns.
 
+
+<img src = "graphic_interface/visual_representation.png" width="60%">
+
 ## Resources
 - Wikipedia: Dijskra Algorithm
 
