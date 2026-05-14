@@ -50,9 +50,21 @@ class Drone:
         self.at_goal = False
         self.path = path
         self.path_index = 0
+        self.turns_in_transit = 0
+        self.reserved_hub = None
+        self.reserved_conn = None
 
     def move(self):
         if self.at_goal or self.path_index >= len(self.path) - 1:
+            return
+        if self.turns_in_transit > 0:
+            self.turns_in_transit -= 1
+            if self.turns_in_transit == 0 and self.reserved_hub:
+                self.path_index += 1
+                self.current_zone = self.reserved_hub
+                self.reserved_hub = None
+                if self.current_zone == self.path[-1]:
+                    self.at_goal = True
             return
         next_hub = self.path[self.path_index + 1]
         conn = None
@@ -62,6 +74,13 @@ class Drone:
                 break
         if conn and (next_hub.current_occupancy < next_hub.max_drones and
                      conn.current_occupancy < conn.max_link_capacity):
+            if next_hub.zone == 'restricted':
+                self.turns_in_transit = 1
+                self.reserved_hub = next_hub
+                next_hub.current_occupancy += 1
+                conn.current_occupancy += 1
+                self.current_zone.current_occupancy -= 1
+                return
             self.current_zone.current_occupancy -= 1
             conn.current_occupancy += 1
             self.path_index += 1
@@ -76,10 +95,10 @@ class Simulation:
     def update_drones(self, list_drones):
         turn_moves = []
         for d in list_drones:
+            print(f"{d.id}: {d.current_zone.name} transit={d.turns_in_transit} goal={d.at_goal}")
             previous_zone = d.current_zone
             d.move()
             if d.current_zone != previous_zone:
                 turn_moves.append(f"{d.id}-{d.current_zone.name}")
-                # print(f"{d.id}-{d.current_zone}")
         if turn_moves:
             print(" ".join(turn_moves))

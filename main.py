@@ -51,7 +51,7 @@ if __name__ == "__main__":
             path = all_paths[(d - 1) % len(all_paths)]
             drone = Drone(f"D{d}", start_hub, path)
             list_drones.append(drone)
-
+        exit_hub = list_class_hubs.get('exit_point')
         simulator = Simulation()
 
     # Initialize the Graphic visualization
@@ -61,7 +61,7 @@ if __name__ == "__main__":
         graph_points = app.draw_graph(list_class_hubs, list_drones, start_hub)
         app.update_info(list_drones)
         app.btn_start.configure(
-            command=lambda: app.animate(list_drones, graph_points, simulator)
+            command=lambda: app.animate(list_drones, graph_points, simulator, list_class_hubs)
         )
 
     app.after(100, start)

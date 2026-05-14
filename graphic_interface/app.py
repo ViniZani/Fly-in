@@ -177,7 +177,7 @@ class App(ctk.CTk):
                 x, y, image=self.drone_img)
         return graph_points
 
-    def animate(self, list_drones, graph_points, simulator):
+    def animate(self, list_drones, graph_points, simulator, list_class_hubs):
         # for drone in list_drones:
             # print(f"{drone.id}: {drone.current_zone.name} at_goal={drone.at_goal}") # noqa
         # Draw the current position
@@ -185,13 +185,16 @@ class App(ctk.CTk):
             x, y = graph_points[drone.current_zone.name]
             self.canvas_graph.coords(drone.canvas_id, x, y)
         # Moves to the next turn
-        for d in list_drones:
-            drones_arrived = [d.at_goal]
-        all_arrived = all(drones_arrived)
+        all_arrived = all(d.at_goal for d in list_drones)
         if not all_arrived:
             simulator.update_drones(list_drones)
+            if list_class_hubs and 'exit_point' in list_class_hubs:
+                print(f"exit_point: {list_class_hubs['exit_point'].current_occupancy}")
+            for c in list_class_hubs['loop_b'].connections:
+                if c.target.name == 'exit_point':
+                    print(f"conn loop_b->exit_point occupancy: {c.current_occupancy}")
             self.current_turn += 1
             self.label_turns.configure(text="Total Turns:"
                                        f"{self.current_turn}")
             self.after(500, lambda: self.animate(list_drones,
-                                                 graph_points, simulator))
+                                                 graph_points, simulator, list_class_hubs))
