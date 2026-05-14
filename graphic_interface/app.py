@@ -78,17 +78,71 @@ class App(ctk.CTk):
         # Initialize animattion bottom
         self.btn_start = ctk.CTkButton(
             self.menu_control,
-            text="Solver Path Simulation",
+            text="> Solver Path Simulation",
             command=self.on_start_click
             )
         self.btn_start.pack(pady=10, padx=10, fill="x")
         # Catch mouse click (for debug)
-        self.canvas_graph.bind('<Button-1>', self.capturar_clique)
+        self.canvas_graph.bind('<Button-1>', self.catch_click)
+
+        # Restart animation bottom
+        self.btn_reset = ctk.CTkButton(
+            self.menu_control,
+            text="Reset Simulation",
+            fg_color="#c0392b",
+            hover_color="#a93226",
+            command=self.on_reset_click
+        )
+        self.btn_reset.pack(pady=10, padx=10, fill="x")
+
+        # Count Arrived Drones
+        self.arrived_drones_frame = ctk.CTkFrame(
+            self.menu_control,
+            fg_color="gray25",
+            corner_radius=5)
+        self.arrived_drones_frame.pack(padx=10, pady=10, fill="x")
+
+        self.current_arrived = 0
+        self.label_arrived = ctk.CTkLabel(
+            self.arrived_drones_frame,
+            text=f"Drones Arrived at goal: {self.current_arrived}",
+            font=("Arial", 13, "bold"),
+        )
+        self.label_arrived.pack(pady=10, padx=10)
 
     # Click logic botom
     def on_start_click(self):
         pass
 
+    def catch_click(self, event):
+        print(f"Posição no Canvas: x={event.x}, y={event.y}")
+
+    def on_reset_click(self):
+        """if not hasattr(self, 'current_drones_list'):
+            print("Nenhuma simulação para resetar.")
+            return"""
+
+        self.simulation_running = False
+
+        self.current_turn = 0
+        self.label_turns.configure(text="Total Turns: 0")
+        if hasattr(self, 'label_arrived'):
+            self.label_arrived.configure(text="Drones Arrived at goal: 0")
+
+        drones = self.current_drones_list
+        start_node = self.start_hub_ref
+        points = self.graph_points_ref
+
+        x_start, y_start = points[start_node.name]
+
+        for drone in drones:
+            drone.current_zone = start_node
+            drone.at_goal = False
+            self.canvas_graph.coords(drone.canvas_id, x_start, y_start)
+
+        print("Reseted Simulation.")
+
+    # Create Canvas Elements
     def create_vertex(self, x1, y1, x2, y2, cor="gray"):
         """ Desenha uma linha entre dois pontos """
         self.canvas_graph.create_line(x1, y1, x2, y2,
@@ -106,14 +160,11 @@ class App(ctk.CTk):
             x, y+45, text=nome, fill="#191c1f",
             font=("Arial", 10, "bold")
         )
-        if nome == 'goal':
+        """if nome == 'goal':
             self.canvas_graph.create_text(
                 x, y+65, text="Drones occuped: 0", fill="#191c1f",
                 font=("Arial", 10, "bold")
-            )
-
-    def capturar_clique(self, event):
-        print(f"Posição no Canvas: x={event.x}, y={event.y}")
+            )"""
 
     def update_info(self, list_drones):
         self.label_total_drones.configure(text="Total Drones:"
@@ -152,9 +203,6 @@ class App(ctk.CTk):
             y_scale = (area_y / 2) / y_abs_max
             x_normal = zero_x + hub.x * x_scale
             y_normal = centro_y - hub.y * y_scale
-
-            # x_normal = zero_x + (hub.x - x_min) / x_range * area_x
-            # y_normal = centro_y - (hub.y - y_min) / y_range * (area_y / 2)
             graph_points[name] = (x_normal, y_normal)
 
         # Connections
@@ -175,6 +223,9 @@ class App(ctk.CTk):
             x, y = graph_points[drone.current_zone.name]
             drone.canvas_id = self.canvas_graph.create_image(
                 x, y, image=self.drone_img)
+        self.current_drones_list = list_drones
+        self.start_hub_ref = start_hub
+        self.graph_points_ref = graph_points
         return graph_points
 
     def animate(self, list_drones, graph_points, simulator, list_class_hubs):
@@ -186,15 +237,17 @@ class App(ctk.CTk):
             self.canvas_graph.coords(drone.canvas_id, x, y)
         # Moves to the next turn
         all_arrived = all(d.at_goal for d in list_drones)
+        drones_at_goal = sum(1 for d in list_drones if d.at_goal)
+        self.label_arrived.configure(
+            text=f"Drones Arrived at goal: {drones_at_goal}"
+        )
         if not all_arrived:
             simulator.update_drones(list_drones)
-            if list_class_hubs and 'exit_point' in list_class_hubs:
-                print(f"exit_point: {list_class_hubs['exit_point'].current_occupancy}")
-            for c in list_class_hubs['loop_b'].connections:
-                if c.target.name == 'exit_point':
-                    print(f"conn loop_b->exit_point occupancy: {c.current_occupancy}")
+            # if list_class_hubs and 'exit_point' in list_class_hubs:
+            #    print(f"exit_point: {list_class_hubs['exit_point'].current_occupancy}") # noqa
             self.current_turn += 1
             self.label_turns.configure(text="Total Turns:"
                                        f"{self.current_turn}")
-            self.after(500, lambda: self.animate(list_drones,
-                                                 graph_points, simulator, list_class_hubs))
+            self.after(500, lambda: self.animate(
+                list_drones, graph_points, simulator, list_class_hubs
+            ))

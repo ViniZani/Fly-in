@@ -95,7 +95,10 @@ class Simulation:
     def update_drones(self, list_drones):
         turn_moves = []
         for d in list_drones:
-            print(f"{d.id}: {d.current_zone.name} transit={d.turns_in_transit} goal={d.at_goal}")
+            print(
+                    f"{d.id}: {d.current_zone.name} "
+                    f"transit={d.turns_in_transit} goal={d.at_goal}"
+                )
             previous_zone = d.current_zone
             d.move()
             if d.current_zone != previous_zone:

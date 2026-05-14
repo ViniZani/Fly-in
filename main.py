@@ -61,7 +61,9 @@ if __name__ == "__main__":
         graph_points = app.draw_graph(list_class_hubs, list_drones, start_hub)
         app.update_info(list_drones)
         app.btn_start.configure(
-            command=lambda: app.animate(list_drones, graph_points, simulator, list_class_hubs)
+            command=lambda: app.animate(
+                list_drones, graph_points, simulator, list_class_hubs
+            )
         )
 
     app.after(100, start)
