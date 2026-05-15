@@ -10,6 +10,11 @@ FILE ?= simple_fork.txt
 all: run
 
 
+
+help:
+	@echo "Install: make install"
+	@echo "Use: make run FILE=you_map.txt"
+
 install:
 	python3 -m venv $(VENV_DIR)
 	$(PIP) install --upgrade pip
@@ -18,7 +23,7 @@ install:
 
 
 run:
-	$(PYTHON) pathfind_algorithm.py $(FILE)
+	$(PYTHON) main.py $(FILE)
 
 
 debug:

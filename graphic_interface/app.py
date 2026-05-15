@@ -228,9 +228,14 @@ class App(ctk.CTk):
         self.graph_points_ref = graph_points
         return graph_points
 
-    def animate(self, list_drones, graph_points, simulator, list_class_hubs):
+    def animate(self, list_drones, graph_points, simulator, list_class_hubs, all_paths):
+        # To see what is going on each turn
         # for drone in list_drones:
-            # print(f"{drone.id}: {drone.current_zone.name} at_goal={drone.at_goal}") # noqa
+        #    print(f"{drone.id}: {drone.current_zone.name} at_goal={drone.at_goal}") # noqa
+        # print(f"D3 path: {[h.name for h in list_drones[2].path]}")
+        # print(f"D6 path: {[h.name for h in list_drones[5].path]}")
+        # print(f"D8 path: {[h.name for h in list_drones[7].path]}")
+        # print(f"waiting_area3 occupancy: {list_class_hubs['waiting_area3'].current_occupancy}")
         # Draw the current position
         for drone in list_drones:
             x, y = graph_points[drone.current_zone.name]
@@ -242,12 +247,12 @@ class App(ctk.CTk):
             text=f"Drones Arrived at goal: {drones_at_goal}"
         )
         if not all_arrived:
-            simulator.update_drones(list_drones)
+            simulator.update_drones(list_drones, all_paths)
             # if list_class_hubs and 'exit_point' in list_class_hubs:
             #    print(f"exit_point: {list_class_hubs['exit_point'].current_occupancy}") # noqa
             self.current_turn += 1
             self.label_turns.configure(text="Total Turns:"
                                        f"{self.current_turn}")
             self.after(500, lambda: self.animate(
-                list_drones, graph_points, simulator, list_class_hubs
+                list_drones, graph_points, simulator, list_class_hubs, all_paths
             ))

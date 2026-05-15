@@ -1,7 +1,10 @@
+from typing import List
+
+
 class Hub:
     "Nó do grafo, representa cada zona onde o drone pode ficar"
     def __init__(self, name: str, x: int, y: int, zone: str = 'normal',
-                 color: str = None, max_drones: int = 1):
+                 color: str | None = None, max_drones: int = 1):
         self.name = name
         self.x = x
         self.y = y
@@ -44,7 +47,7 @@ class Graph:
 
 
 class Drone:
-    def __init__(self, id: int, start: Hub, path):
+    def __init__(self, id: str, start: Hub, path):
         self.id = id
         self.current_zone = start
         self.at_goal = False
@@ -53,16 +56,21 @@ class Drone:
         self.turns_in_transit = 0
         self.reserved_hub = None
         self.reserved_conn = None
+        self.turns_stopped = 0
+        self.previous_zone = start
 
     def move(self):
         if self.at_goal or self.path_index >= len(self.path) - 1:
             return
+        previous_zone = self.current_zone
         if self.turns_in_transit > 0:
             self.turns_in_transit -= 1
             if self.turns_in_transit == 0 and self.reserved_hub:
                 self.path_index += 1
                 self.current_zone = self.reserved_hub
                 self.reserved_hub = None
+                self.reserved_conn.current_occupancy -= 1
+                self.reserved_conn = None
                 if self.current_zone == self.path[-1]:
                     self.at_goal = True
             return
@@ -77,6 +85,7 @@ class Drone:
             if next_hub.zone == 'restricted':
                 self.turns_in_transit = 1
                 self.reserved_hub = next_hub
+                self.reserved_conn = conn
                 next_hub.current_occupancy += 1
                 conn.current_occupancy += 1
                 self.current_zone.current_occupancy -= 1
@@ -89,17 +98,27 @@ class Drone:
             conn.current_occupancy -= 1
             if self.current_zone == self.path[-1]:
                 self.at_goal = True
+        if self.current_zone == previous_zone:
+            self.turns_stopped += 1
+        else:
+            self.turns_stopped = 0
 
 
 class Simulation:
-    def update_drones(self, list_drones):
+    def update_drones(self, list_drones: List[Drone], all_paths: List[List[Hub]]) -> None:
         turn_moves = []
         for d in list_drones:
-            print(
-                    f"{d.id}: {d.current_zone.name} "
-                    f"transit={d.turns_in_transit} goal={d.at_goal}"
-                )
             previous_zone = d.current_zone
+            if d.turns_stopped > 2:
+                current_path_idx = all_paths.index(d.path) if d.path in all_paths else 0
+                next_path_idx = (current_path_idx + 1) % len(all_paths)
+                new_path = all_paths[next_path_idx]
+                if d.current_zone in new_path:
+                    d.path_index = new_path.index(d.current_zone)
+                else:
+                    d.path_index = 0
+                d.path = new_path
+                d.turns_stopped = 0
             d.move()
             if d.current_zone != previous_zone:
                 turn_moves.append(f"{d.id}-{d.current_zone.name}")

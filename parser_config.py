@@ -1,3 +1,6 @@
+from typing import Any, Optional
+
+
 class Parser:
     def __init__(self, archive):
         self.archive = archive
@@ -10,7 +13,7 @@ class Parser:
             has_meta = False
             if '[' in line:
                 data = line.replace(']', '').split("[")
-                main_part = data[0]
+                main_part: Any = data[0]
                 metadata_part = data[1]
                 has_meta = True
             else:
@@ -54,14 +57,17 @@ class Parser:
             print("[ERROR DETECTED]:", e)
             exit(1)
 
-    def get_data(self) -> tuple[int, dict, dict, list, list]:
+    def get_data(self) -> tuple[int, Optional[dict[Any, Any]],
+                                list[dict[str, Any]],
+                                Optional[dict[Any, Any]],
+                                list[dict[str, Any]]]:
         nb_drones = 0
         start_hub = None
         end_hub = None
         curr_hub = None
-        list_hubs = []
+        list_hubs: list[dict[str, Any]] = []
         connection_model = {"a": None, "b": None, "max_link_capacity": 1}
-        list_conects = []
+        list_conects: list[dict[str, Any]] = []
         try:
             with open(self.archive, "r", encoding='utf-8') as archive:
                 count_start = 0
@@ -117,7 +123,7 @@ class Parser:
                         has_meta = False
                         if '[' in line:
                             data = line.replace(']', '').split("[")
-                            main_part = data[0]
+                            main_part: Any = data[0]
                             metadata_part = data[1]
                             has_meta = True
                         else:
