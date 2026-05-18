@@ -94,8 +94,19 @@ From this project, the aspcet 'restricted' in zones causes a cost in the turns t
 
 After studing, i found the BFS and Dijskra algos, but the big O help me witch i needed to use. 
 ### BFS
+For unweighted graphs (no restricted zones), the BFS algo is better then Dijskra, because your big 0 notation is O(V + E)
 
+BFS explores the graph in layers—first all direct neighbors of the start node, then the neighbors' neighbors, and so on. Each element in the queue carries three things: the current hub, the path traveled so far, and the set of hubs already visited along that path.
+
+The key difference from classic BFS is that here, each path maintains its own visited set—this allows the algorithm to find all possible paths between the start and end nodes, not just the first one. Blocked zones are ignored. At the end, paths are sorted by the number of priority zones—paths that pass through more priority zones come first.
+
+It is used when there are no restricted zones on the map, as all movements cost 1 turn, and BFS naturally finds the shortest paths.
 ### Dijskra
+Dijkstra is similar to BFS but with weights , each movement has a cost based on the destination zone type (normal/priority = 1 turn, restricted = 2 turns). The queue is sorted by accumulated cost, ensuring that we always process the cheapest path first.
+
+The tuple in the queue contains 5 elements: (accumulated_cost, neg_priority, current_hub, path, visited). The neg_priority acts as a tie-breaker—when two paths have the same cost, we prefer the one that passes through more priority zones. That is why it is negative: more negative values = more priority zones = better.
+
+It is used when there are restricted zones on the map, as the variable cost means a path with fewer hops might actually be slower than a longer one.
 
 ##  Visual Representation Feature
 For help and enhance the user experience, i chose use the lib Customtkinter, a lib focus on create interative interfaces using an extra window to show the interface. I separate the window in two points. One, bigger, for the representation of the graph, create the hubs, the connections, the drones. and the other, one vertical menu to show important data, like the total numbers of drones, how many drones arrived at the goal, the total of turns the was needed in real time uptaded. And one bottom in this menu to start and reset the animation of the drones moves through the hubs and connections and counting turns.
