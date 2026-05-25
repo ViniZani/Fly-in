@@ -1,20 +1,21 @@
-import customtkinter as ctk
+import customtkinter as ctk  # type: ignore
 from PIL import Image, ImageTk
 
 ctk.set_appearance_mode('dark')
 
 
 class App(ctk.CTk):
-    def __init__(self):
+    def __init__(self, simulator):
         super().__init__()
 
-        # Main Windown Config
+        # Main Window Config
         self.title('Fly-In: Drones Solver System')
-        # self.geometry("")
         self.geometry('12000x8000')
-        # self.attributes("-fullscreen", True)
+        self.bind('<Configure>', self.on_window_resize)
+        self.simulator = simulator
+        self.animating = False
 
-        # Configurando a responsividade (Grid)
+        # Grid responsiveness
         self.grid_columnconfigure(0, weight=4)
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -29,7 +30,7 @@ class App(ctk.CTk):
         img = Image.open("graphic_interface/drone_2d.webp").resize((40, 40))
         self.drone_img = ImageTk.PhotoImage(img)
 
-        # Canvas pad
+        # Canvas
         self.canvas_graph = ctk.CTkCanvas(
             self.graph_display,
             background="#e1d9c3",
@@ -42,54 +43,67 @@ class App(ctk.CTk):
         self.menu_control.grid(row=0, column=1,
                                padx=(0, 20), pady=20, sticky="nsew")
 
-        # Menu's Title
+        # Menu Title
         self.label_menu = ctk.CTkLabel(
             self.menu_control,
             text="Drones Controls Menu",
             font=("Arial", 20, "bold")
         )
-        # Data's Menu objtects
         self.label_menu.pack(pady=20)
-        self.total_drones_frame = ctk.CTkFrame(
+
+        # Status Frame (unified, from Code 1)
+        self.status_frame = ctk.CTkFrame(
             self.menu_control,
             fg_color="gray25",
-            corner_radius=5)
-        self.total_drones_frame.pack(padx=10, pady=10, fill="x")
+            corner_radius=5
+        )
+        self.status_frame.pack(padx=10, pady=10, fill="x")
 
+        ctk.CTkLabel(
+            self.status_frame,
+            text="Status View",
+            font=("Arial", 19, "bold")
+        ).pack(pady=(10, 5), padx=10)
+
+        # Total Drones
         self.label_total_drones = ctk.CTkLabel(
-            self.total_drones_frame,
+            self.status_frame,
             text="Total Drones: 0",
-            font=("Arial", 13, "bold"))
-        self.label_total_drones.pack(pady=10, padx=10)
+            font=("Arial", 13, "bold")
+        )
+        self.label_total_drones.pack(pady=5, padx=10)
 
-        # Total Turns Count
-        self.turns_frame = ctk.CTkFrame(
-            self.menu_control,
-            fg_color="gray25",
-            corner_radius=5)
-        self.turns_frame.pack(padx=10, pady=10, fill="x")
-
+        # Total Turns
         self.current_turn = 0
         self.label_turns = ctk.CTkLabel(
-            self.turns_frame,
+            self.status_frame,
             text=f"Total Turns: {self.current_turn}",
-            font=("Arial", 13, "bold"),
+            font=("Arial", 13, "bold")
         )
-        self.label_turns.pack(pady=10, padx=10)
+        self.label_turns.pack(pady=5, padx=10)
 
-        # Initialize animattion bottom
+        # Drones Arrived
+        self.current_arrived = 0
+        self.label_arrived = ctk.CTkLabel(
+            self.status_frame,
+            text=f"Drones Arrived at goal: {self.current_arrived}",
+            font=("Arial", 13, "bold")
+        )
+        self.label_arrived.pack(pady=(5, 10), padx=10)
+
+        # Start button
         self.btn_start = ctk.CTkButton(
             self.menu_control,
             text="> Solver Path Simulation",
             command=self.on_start_click
-            )
+        )
         self.btn_start.pack(pady=10, padx=10, fill="x")
-        # Catch mouse click (for debug)
-        self.canvas_graph.bind('<Button-1>', self.catch_click)
 
+        # Canvas bindings
+        self.canvas_graph.bind('<Button-1>', self.catch_click)
         self.canvas_graph.bind('<Configure>', self.on_canvas_resize)
 
-        # Restart animation bottom
+        # Reset button
         self.btn_reset = ctk.CTkButton(
             self.menu_control,
             text="Reset Simulation",
@@ -99,63 +113,62 @@ class App(ctk.CTk):
         )
         self.btn_reset.pack(pady=10, padx=10, fill="x")
 
-        # Count Arrived Drones
-        self.arrived_drones_frame = ctk.CTkFrame(
+        self.log_frame = ctk.CTkFrame(
             self.menu_control,
             fg_color="gray25",
-            corner_radius=5)
-        self.arrived_drones_frame.pack(padx=10, pady=10, fill="x")
-
-        self.current_arrived = 0
-        self.label_arrived = ctk.CTkLabel(
-            self.arrived_drones_frame,
-            text=f"Drones Arrived at goal: {self.current_arrived}",
-            font=("Arial", 13, "bold"),
+            corner_radius=5
         )
-        self.label_arrived.pack(pady=10, padx=10)
+        self.log_frame.pack(padx=10, pady=10, fill="x")
 
-    # Click logic botom
+    # ==== Button Logic ====
+
     def on_start_click(self):
         pass
 
     def catch_click(self, event):
         print(f"Posição no Canvas: x={event.x}, y={event.y}")
 
-    def on_reset_click(self):
-        """if not hasattr(self, 'current_drones_list'):
-            print("Nenhuma simulação para resetar.")
-            return"""
-
+    def on_reset_click(self) -> None:
         self.simulation_running = False
-
         self.current_turn = 0
         self.label_turns.configure(text="Total Turns: 0")
-        if hasattr(self, 'label_arrived'):
-            self.label_arrived.configure(text="Drones Arrived at goal: 0")
+        self.label_arrived.configure(text="Drones Arrived at goal: 0")
 
         drones = self.current_drones_list
         start_node = self.start_hub_ref
         points = self.graph_points_ref
 
-        x_start, y_start = points[start_node.name]
+        # Reset hub occupancies
+        for hub in self.list_class_hubs_ref.values():
+            hub.current_occupancy = 0
+        for hub in self.list_class_hubs_ref.values():
+            for conn in hub.connections:
+                conn.current_occupancy = 0
 
+        # Reset drones
+        x_start, y_start = points[start_node.name]
         for drone in drones:
             drone.current_zone = start_node
             drone.at_goal = False
+            drone.path_index = 0
+            drone.turns_in_transit = 0
+            drone.turns_stopped = 0
+            drone.reserved_hub = None
+            drone.reserved_conn = None
             self.canvas_graph.coords(drone.canvas_id, x_start, y_start)
 
-        print("Reseted Simulation.")
+        print("\n==Reseted Simulation==\n")
 
-    # Create Canvas Elements
+    # ==== Canvas Elements ====
+
     def create_vertex(self, x1, y1, x2, y2, cor="gray"):
-        """ Desenha uma linha entre dois pontos """
+        """Desenha uma linha entre dois pontos"""
         self.canvas_graph.create_line(x1, y1, x2, y2,
                                       fill=cor, width=2, dash=(4, 4))
 
     def create_hub(self, x, y, nome, fill_color="#1f6aa5"):
-        """ Draw a circle thta represents a Hub """
+        """Desenha um círculo representando um Hub"""
         r = 25
-
         self.canvas_graph.create_oval(
             x-r, y-r, x+r, y+r,
             fill=fill_color, outline="white", width=2
@@ -164,28 +177,27 @@ class App(ctk.CTk):
             x, y+45, text=nome, fill="#191c1f",
             font=("Arial", 10, "bold")
         )
-        """if nome == 'goal':
-            self.canvas_graph.create_text(
-                x, y+65, text="Drones occuped: 0", fill="#191c1f",
-                font=("Arial", 10, "bold")
-            )"""
 
     def update_info(self, list_drones):
-        self.label_total_drones.configure(text="Total Drones:"
-                                          f"{len(list_drones)}")
-
-    def on_canvas_resize(self, event):
-        """Reorganize the elements size according to the windowns size"""
-        if hasattr(self, 'list_class_hubs_ref') and self.list_class_hubs_ref:
-            self.draw_graph(self.list_class_hubs_ref,
-                            self.list_drones_ref, self.start_hub_ref)
+        self.label_total_drones.configure(
+            text=f"Total Drones: {len(list_drones)}"
+        )
 
     def draw_graph(self, list_class_hubs, list_drones, start_hub):
-        """Create the Graph in the Canvas side of the Windown"""
+        """Cria o grafo no canvas"""
         self.list_class_hubs_ref = list_class_hubs
         self.list_drones_ref = list_drones
-        self.start_hub_ref = start_hub
         self.canvas_graph.delete('all')
+
+        width = self.canvas_graph.winfo_width()
+        height = self.canvas_graph.winfo_height()
+        if width <= 1 or height <= 1:
+            width = 800
+            height = 600
+
+        for drone in list_drones:
+            if hasattr(drone, 'canvas_id'):
+                drone.canvas_id = None
 
         graph_points = {}
         all_x = [hub.x for hub in list_class_hubs.values()]
@@ -237,43 +249,72 @@ class App(ctk.CTk):
             x, y = graph_points[drone.current_zone.name]
             drone.canvas_id = self.canvas_graph.create_image(
                 x, y, image=self.drone_img)
+
         self.current_drones_list = list_drones
         self.start_hub_ref = start_hub
         self.graph_points_ref = graph_points
         return graph_points
 
-# ======= Animation Logic =======
+    # ==== Resize Methods ====
+
+    def on_canvas_resize(self, event):
+        """Reorganiza os elementos ao redimensionar o canvas"""
+        if hasattr(self, 'list_class_hubs_ref') and self.list_class_hubs_ref:
+            self.draw_graph(self.list_class_hubs_ref,
+                            self.list_drones_ref, self.start_hub_ref)
+
+    def on_window_resize(self, event=None):
+        """Chamado quando a janela é redimensionada (com debounce)"""
+        if hasattr(self, '_resize_job'):
+            self.after_cancel(self._resize_job)
+        self._resize_job = self.after(100, self.redraw_graph)
+
+    def redraw_graph(self):
+        """Redesenha todo o grafo com as novas dimensões"""
+        if hasattr(self, 'list_class_hubs_ref') and self.list_class_hubs_ref:
+            # Redesenha o grafo com as dimensões atuais do canvas
+            self.draw_graph(
+                self.list_class_hubs_ref,
+                self.current_drones_list,
+                self.start_hub_ref
+            )
+        self.update_info(self.current_drones_list)
+
+    # ==== Animation Logic ====
 
     def lerp(self, inicio, fim, t):
-        """Calcules the interpolate value between two coordinate"""
+        """Calcula o valor interpolado entre duas coordenadas"""
         return inicio + (fim - inicio) * t
 
     def animate(self, list_drones, graph_points,
                 simulator, list_class_hubs, all_paths) -> None:
-        """Uptade the info's status turn by turn
-        and calls the funcion for animate Drones"""
+        """Atualiza o status turno a turno e anima os drones"""
+        current_points = getattr(self, 'graph_points_ref', graph_points)
+
         all_arrived = all(d.at_goal for d in list_drones)
         drones_at_goal = 0
         for d in list_drones:
             if d.at_goal:
                 drones_at_goal += 1
-        self.label_arrived.configure(text="Drones Arrived "
-                                     f"at goal: {drones_at_goal}")
+        self.label_arrived.configure(
+            text=f"Drones Arrived at goal: {drones_at_goal}"
+        )
 
         if not all_arrived:
-            posicoes_iniciais = {}
-            for drone in list_drones:
-                posicoes_iniciais[drone.id] = (
-                    graph_points[drone.current_zone.name])
+            posicoes_iniciais = {
+                drone.id: current_points[drone.current_zone.name]
+                for drone in list_drones
+            }
 
             simulator.update_drones(list_drones, all_paths)
             self.current_turn += 1
-            self.label_turns.configure(text="Total Turns: "
-                                       "f{self.current_turn}")
+            self.label_turns.configure(
+                text=f"Total Turns: {self.current_turn}"
+            )
 
             total_frames = 20
             self.interpolate_drone_movement(
-                list_drones, posicoes_iniciais, graph_points,
+                list_drones, posicoes_iniciais, current_points,
                 step=1, max_steps=total_frames,
                 callback=lambda: self.animate(list_drones, graph_points,
                                               simulator, list_class_hubs,
@@ -283,17 +324,15 @@ class App(ctk.CTk):
     def interpolate_drone_movement(self, list_drones, posicoes_iniciais,
                                    graph_points, step, max_steps,
                                    callback) -> None:
-        """Moves the drones frame by frame between the Hubs"""
+        """Move os drones quadro a quadro entre os Hubs"""
         if step <= max_steps:
             t = step / max_steps
 
             for drone in list_drones:
                 x_inicio, y_inicio = posicoes_iniciais[drone.id]
                 x_fim, y_fim = graph_points[drone.current_zone.name]
-
                 current_x = self.lerp(x_inicio, x_fim, t)
                 current_y = self.lerp(y_inicio, y_fim, t)
-
                 self.canvas_graph.coords(drone.canvas_id, current_x, current_y)
 
             self.after(16, self.interpolate_drone_movement,

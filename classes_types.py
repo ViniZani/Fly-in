@@ -113,8 +113,8 @@ class Simulation:
             if d.turns_stopped > 2:
                 if d.path in all_paths:
                     current_path_idx = all_paths.index(d.path)
-            else:
-                current_path_idx = 0
+                else:
+                    current_path_idx = 0
                 next_path_idx = (current_path_idx + 1) % len(all_paths)
                 new_path = all_paths[next_path_idx]
                 if d.current_zone in new_path:
@@ -126,5 +126,8 @@ class Simulation:
             d.move()
             if d.current_zone != previous_zone:
                 turn_moves.append(f"{d.id}-{d.current_zone.name}")
+            elif d.turns_in_transit > 0 and d.reserved_hub:
+                conn_name = f"{d.current_zone.name}-{d.reserved_hub.name}"
+                turn_moves.append(f"{d.id}-{conn_name}")
         if turn_moves:
             print(" ".join(turn_moves))

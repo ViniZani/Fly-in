@@ -1,19 +1,19 @@
 import sys
-from typing import Dict, List, Any
+from typing import Dict, List
 from parser_config import Parser
 from classes_types import Hub, Graph, Drone, Simulation
 from pathfind_algorithm import Solver_path
 from graphic_interface.App import App
 
 
-if __name__ == "__main__":
+def main() -> None:
     try:
         if len(sys.argv) == 2:
             parser: Parser = Parser(sys.argv[1])
             (nb_drones, start_hub_dict, list_hubs,
              end_hub_dict, list_conects) = parser.get_data()
             if (start_hub_dict is None or end_hub_dict is None
-                    or list_conects is None):
+                    or list_conects == []):
                 raise ValueError("[ERROR] None of the values can be None")
             start_hub: Hub = Hub(**start_hub_dict)
             end_hub: Hub = Hub(**end_hub_dict)
@@ -44,38 +44,43 @@ if __name__ == "__main__":
 
             all_paths: List[List[Hub]]
             if is_weigthed is True:
-                print("USANDO DIJKSTRA")
+                print("USING DIJKSTRA")
                 all_paths = algo.dijkstra(start_hub, end_hub)
             else:
-                print("USANDO BFS")
+                print("USING BFS")
                 all_paths = algo.bfs(start_hub, end_hub)
-            # print(all_paths)
+            if all_paths == []:
+                raise ValueError("[ERROR] Thats is no connections"
+                                 " between start and goal")
 
             list_drones: List[Drone] = []
             for d in range(1, nb_drones + 1):
                 path: List[Hub] = all_paths[(d - 1) % len(all_paths)]
                 drone: Drone = Drone(f"D{d}", start_hub, path)
                 list_drones.append(drone)
-            exit_hub: Any = list_class_hubs.get('exit_point')
             simulator: Simulation = Simulation()
         else:
-            raise ValueError("Please, input only 1 parameter (map)")
-
-        # Initialize the Graphic visualization
-        app: App = App()
-
-        def start() -> None:
-            graph_points = app.draw_graph(list_class_hubs,
-                                          list_drones, start_hub)
-            app.update_info(list_drones)
-            app.btn_start.configure(
-                command=lambda: app.animate(
-                    list_drones, graph_points, simulator,
-                    list_class_hubs, all_paths
-                )
-            )
-
-        app.after(100, start)
-        app.mainloop()
+            raise ValueError("[ERROR] Only one text file is required")
     except ValueError as e:
         print(e)
+        exit(1)
+
+    # Initialize the Graphic visualization
+    app: App = App(simulator)
+
+    def start() -> None:
+        graph_points = app.draw_graph(list_class_hubs, list_drones, start_hub)
+        app.update_info(list_drones)
+        app.btn_start.configure(
+            command=lambda: app.animate(
+                list_drones, graph_points, simulator,
+                list_class_hubs, all_paths
+            )
+        )
+
+    app.after(100, start)
+    app.mainloop()
+
+
+if __name__ == "__main__":
+    main()
