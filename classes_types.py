@@ -59,7 +59,7 @@ class Drone:
         self.turns_stopped = 0
         self.previous_zone = start
 
-    def move(self):
+    def move(self) -> None:
         if self.at_goal or self.path_index >= len(self.path) - 1:
             return
         previous_zone = self.current_zone
@@ -105,12 +105,16 @@ class Drone:
 
 
 class Simulation:
-    def update_drones(self, list_drones: List[Drone], all_paths: List[List[Hub]]) -> None:
+    def update_drones(self, list_drones: List[Drone],
+                      all_paths: List[List[Hub]]) -> None:
         turn_moves = []
         for d in list_drones:
             previous_zone = d.current_zone
             if d.turns_stopped > 2:
-                current_path_idx = all_paths.index(d.path) if d.path in all_paths else 0
+                if d.path in all_paths:
+                    current_path_idx = all_paths.index(d.path)
+            else:
+                current_path_idx = 0
                 next_path_idx = (current_path_idx + 1) % len(all_paths)
                 new_path = all_paths[next_path_idx]
                 if d.current_zone in new_path:

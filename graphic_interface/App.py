@@ -10,7 +10,9 @@ class App(ctk.CTk):
 
         # Main Windown Config
         self.title('Fly-In: Drones Solver System')
-        self.geometry('1200x800')
+        # self.geometry("")
+        self.geometry('12000x8000')
+        # self.attributes("-fullscreen", True)
 
         # Configurando a responsividade (Grid)
         self.grid_columnconfigure(0, weight=4)
@@ -85,6 +87,8 @@ class App(ctk.CTk):
         # Catch mouse click (for debug)
         self.canvas_graph.bind('<Button-1>', self.catch_click)
 
+        self.canvas_graph.bind('<Configure>', self.on_canvas_resize)
+
         # Restart animation bottom
         self.btn_reset = ctk.CTkButton(
             self.menu_control,
@@ -149,7 +153,7 @@ class App(ctk.CTk):
                                       fill=cor, width=2, dash=(4, 4))
 
     def create_hub(self, x, y, nome, fill_color="#1f6aa5"):
-        """ Desenha um círculo representando um Hub """
+        """ Draw a circle thta represents a Hub """
         r = 25
 
         self.canvas_graph.create_oval(
@@ -170,8 +174,19 @@ class App(ctk.CTk):
         self.label_total_drones.configure(text="Total Drones:"
                                           f"{len(list_drones)}")
 
+    def on_canvas_resize(self, event):
+        """Reorganize the elements size according to the windowns size"""
+        if hasattr(self, 'list_class_hubs_ref') and self.list_class_hubs_ref:
+            self.draw_graph(self.list_class_hubs_ref,
+                            self.list_drones_ref, self.start_hub_ref)
+
     def draw_graph(self, list_class_hubs, list_drones, start_hub):
+        """Create the Graph in the Canvas side of the Windown"""
+        self.list_class_hubs_ref = list_class_hubs
+        self.list_drones_ref = list_drones
+        self.start_hub_ref = start_hub
         self.canvas_graph.delete('all')
+
         graph_points = {}
         all_x = [hub.x for hub in list_class_hubs.values()]
         all_y = [hub.y for hub in list_class_hubs.values()]
@@ -218,7 +233,6 @@ class App(ctk.CTk):
                             list_class_hubs[name].color or "#1f6aa5")
 
         # Drones
-        x_start, y_start = graph_points[start_hub.name]
         for drone in list_drones:
             x, y = graph_points[drone.current_zone.name]
             drone.canvas_id = self.canvas_graph.create_image(
@@ -228,31 +242,62 @@ class App(ctk.CTk):
         self.graph_points_ref = graph_points
         return graph_points
 
-    def animate(self, list_drones, graph_points, simulator, list_class_hubs, all_paths):
-        # To see what is going on each turn
-        # for drone in list_drones:
-        #    print(f"{drone.id}: {drone.current_zone.name} at_goal={drone.at_goal}") # noqa
-        # print(f"D3 path: {[h.name for h in list_drones[2].path]}")
-        # print(f"D6 path: {[h.name for h in list_drones[5].path]}")
-        # print(f"D8 path: {[h.name for h in list_drones[7].path]}")
-        # print(f"waiting_area3 occupancy: {list_class_hubs['waiting_area3'].current_occupancy}")
-        # Draw the current position
-        for drone in list_drones:
-            x, y = graph_points[drone.current_zone.name]
-            self.canvas_graph.coords(drone.canvas_id, x, y)
-        # Moves to the next turn
+# ======= Animation Logic =======
+
+    def lerp(self, inicio, fim, t):
+        """Calcules the interpolate value between two coordinate"""
+        return inicio + (fim - inicio) * t
+
+    def animate(self, list_drones, graph_points,
+                simulator, list_class_hubs, all_paths) -> None:
+        """Uptade the info's status turn by turn
+        and calls the funcion for animate Drones"""
         all_arrived = all(d.at_goal for d in list_drones)
-        drones_at_goal = sum(1 for d in list_drones if d.at_goal)
-        self.label_arrived.configure(
-            text=f"Drones Arrived at goal: {drones_at_goal}"
-        )
+        drones_at_goal = 0
+        for d in list_drones:
+            if d.at_goal:
+                drones_at_goal += 1
+        self.label_arrived.configure(text="Drones Arrived "
+                                     f"at goal: {drones_at_goal}")
+
         if not all_arrived:
+            posicoes_iniciais = {}
+            for drone in list_drones:
+                posicoes_iniciais[drone.id] = (
+                    graph_points[drone.current_zone.name])
+
             simulator.update_drones(list_drones, all_paths)
-            # if list_class_hubs and 'exit_point' in list_class_hubs:
-            #    print(f"exit_point: {list_class_hubs['exit_point'].current_occupancy}") # noqa
             self.current_turn += 1
-            self.label_turns.configure(text="Total Turns:"
-                                       f"{self.current_turn}")
-            self.after(500, lambda: self.animate(
-                list_drones, graph_points, simulator, list_class_hubs, all_paths
-            ))
+            self.label_turns.configure(text="Total Turns: "
+                                       "f{self.current_turn}")
+
+            total_frames = 20
+            self.interpolate_drone_movement(
+                list_drones, posicoes_iniciais, graph_points,
+                step=1, max_steps=total_frames,
+                callback=lambda: self.animate(list_drones, graph_points,
+                                              simulator, list_class_hubs,
+                                              all_paths)
+            )
+
+    def interpolate_drone_movement(self, list_drones, posicoes_iniciais,
+                                   graph_points, step, max_steps,
+                                   callback) -> None:
+        """Moves the drones frame by frame between the Hubs"""
+        if step <= max_steps:
+            t = step / max_steps
+
+            for drone in list_drones:
+                x_inicio, y_inicio = posicoes_iniciais[drone.id]
+                x_fim, y_fim = graph_points[drone.current_zone.name]
+
+                current_x = self.lerp(x_inicio, x_fim, t)
+                current_y = self.lerp(y_inicio, y_fim, t)
+
+                self.canvas_graph.coords(drone.canvas_id, current_x, current_y)
+
+            self.after(16, self.interpolate_drone_movement,
+                       list_drones, posicoes_iniciais, graph_points,
+                       step + 1, max_steps, callback)
+        else:
+            self.after(600, callback)

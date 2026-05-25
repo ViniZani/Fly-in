@@ -9,7 +9,7 @@ requires-python = ">=3.10"
 dependencies = ["customtkinter", "Pillow",]
 
 [tool.setuptools]
-
+packages = ["graphic_interface"]
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"

@@ -4,7 +4,6 @@ PYTHON   := $(VENV_DIR)/bin/python
 PIP      := $(VENV_DIR)/bin/pip
 FLAKE8   := $(VENV_DIR)/bin/flake8
 MYPY     := $(VENV_DIR)/bin/mypy
-FILE ?= simple_fork.txt
 
 
 all: run
@@ -13,7 +12,7 @@ all: run
 
 help:
 	@echo "Install: make install"
-	@echo "Use: make run FILE=you_map.txt"
+	@echo "Use: make run ARGS=you_map.txt"
 
 install:
 	python3 -m venv $(VENV_DIR)
@@ -23,11 +22,11 @@ install:
 
 
 run:
-	$(PYTHON) main.py $(FILE)
+	$(PYTHON) main.py $(ARGS)
 
 
 debug:
-	$(PYTHON) -m pdb main.py $(FILE)
+	$(PYTHON) -m pdb main.py $(ARGS)
 
 
 clean:

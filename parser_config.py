@@ -2,7 +2,7 @@ from typing import Any, Optional
 
 
 class Parser:
-    def __init__(self, archive):
+    def __init__(self, archive) -> None:
         self.archive = archive
 
     def process_data(self, line: str) -> dict:
@@ -168,9 +168,6 @@ class Parser:
                                     raise ValueError("Duplicate connection"
                                                      "detected.")
                             list_conects.append(connection)
-                        else:
-                            raise ValueError("Connection can only be "
-                                             "established with existing hubs.")
 
             return nb_drones, start_hub, list_hubs, end_hub, list_conects
         except Exception as e:
