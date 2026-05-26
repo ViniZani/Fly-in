@@ -2,8 +2,8 @@ from typing import List, Tuple, Dict, Set
 from classes_types import Hub
 
 
-class Solver_path:
-
+MAX_PATHS = 20
+class Solver_path():
     @staticmethod
     def count_priority(path: List[Hub]) -> int:
         total_priority = 0
@@ -18,6 +18,8 @@ class Solver_path:
         all_paths: List[List[Hub]] = []
         queue.append((start_hub, [start_hub], {start_hub}))
         for hub, path, visited in queue:
+            if len(all_paths) > MAX_PATHS:
+                break
             for conect in hub.connections:
                 neig = conect.target
                 if neig.zone == 'blocked':
@@ -45,6 +47,8 @@ class Solver_path:
         }
         queue.append((0, 0, start_hub, [start_hub], {start_hub}))
         for curr_cost, neg_priority, hub, path, visited in queue:
+            if len(all_paths) > MAX_PATHS:
+                break
             for conect in hub.connections:
                 neig = conect.target
                 if neig.zone == 'blocked':

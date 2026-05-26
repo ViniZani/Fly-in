@@ -51,7 +51,7 @@ class App(ctk.CTk):
         )
         self.label_menu.pack(pady=20)
 
-        # Status Frame (unified, from Code 1)
+        # Status Frame
         self.status_frame = ctk.CTkFrame(
             self.menu_control,
             fg_color="gray25",
@@ -233,6 +233,7 @@ class App(ctk.CTk):
             y_normal = centro_y - hub.y * y_scale
             graph_points[name] = (x_normal, y_normal)
 
+
         # Connections
         for name, hub in list_class_hubs.items():
             x1, y1 = graph_points[name]
@@ -251,6 +252,7 @@ class App(ctk.CTk):
             drone.canvas_id = self.canvas_graph.create_image(
                 x, y, image=self.drone_img)
         self.original_path_indices = [
+
             (d - 1) % len(all_paths)
             for d in range(1, len(list_drones) + 1)
         ]

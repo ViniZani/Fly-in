@@ -143,12 +143,12 @@ class Parser:
                             for item in metadata_part.split():
                                 if "=" in item:
                                     k, v = item.split("=")
-                                    if k == "max_drones":
+                                    if k == "max_link_capacity":
                                         if not v.isdigit() or int(v) < 1:
-                                            raise ValueError("max_drones must"
+                                            raise ValueError("max_link_capacity must"
                                                              " be a positive"
                                                              "integer")
-                                    connection["max_link_capacity"] = int(v)
+                                        connection["max_link_capacity"] = int(v)
                                 else:
                                     raise ValueError("Metadata must have the "
                                                      "following sintax: "
