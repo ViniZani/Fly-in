@@ -69,8 +69,9 @@ def main() -> None:
     app: App = App(simulator)
 
     def start() -> None:
-        graph_points = app.draw_graph(list_class_hubs, list_drones, start_hub)
+        graph_points = app.draw_graph(list_class_hubs, list_drones, start_hub, all_paths)
         app.update_info(list_drones)
+        print(f"start occupancy before sim: {start_hub.current_occupancy}")
         app.btn_start.configure(
             command=lambda: app.animate(
                 list_drones, graph_points, simulator,

@@ -147,9 +147,10 @@ class App(ctk.CTk):
 
         # Reset drones
         x_start, y_start = points[start_node.name]
-        for drone in drones:
+        for i, drone in enumerate(drones):
             drone.current_zone = start_node
             drone.at_goal = False
+            drone.path = self.all_paths_ref[self.original_path_indices[i]]
             drone.path_index = 0
             drone.turns_in_transit = 0
             drone.turns_stopped = 0
@@ -183,7 +184,7 @@ class App(ctk.CTk):
             text=f"Total Drones: {len(list_drones)}"
         )
 
-    def draw_graph(self, list_class_hubs, list_drones, start_hub):
+    def draw_graph(self, list_class_hubs, list_drones, start_hub, all_paths):
         """Cria o grafo no canvas"""
         self.list_class_hubs_ref = list_class_hubs
         self.list_drones_ref = list_drones
@@ -249,10 +250,16 @@ class App(ctk.CTk):
             x, y = graph_points[drone.current_zone.name]
             drone.canvas_id = self.canvas_graph.create_image(
                 x, y, image=self.drone_img)
+        self.original_path_indices = [
+            (d - 1) % len(all_paths)
+            for d in range(1, len(list_drones) + 1)
+        ]
+        self.all_paths_ref = all_paths
 
         self.current_drones_list = list_drones
         self.start_hub_ref = start_hub
         self.graph_points_ref = graph_points
+
         return graph_points
 
     # ==== Resize Methods ====
@@ -261,7 +268,8 @@ class App(ctk.CTk):
         """Reorganiza os elementos ao redimensionar o canvas"""
         if hasattr(self, 'list_class_hubs_ref') and self.list_class_hubs_ref:
             self.draw_graph(self.list_class_hubs_ref,
-                            self.list_drones_ref, self.start_hub_ref)
+                            self.list_drones_ref, self.start_hub_ref,
+                            self.all_paths_ref)
 
     def on_window_resize(self, event=None):
         """Chamado quando a janela é redimensionada (com debounce)"""
@@ -276,7 +284,7 @@ class App(ctk.CTk):
             self.draw_graph(
                 self.list_class_hubs_ref,
                 self.current_drones_list,
-                self.start_hub_ref
+                self.start_hub_ref, self.all_paths_ref
             )
         self.update_info(self.current_drones_list)
 
@@ -318,7 +326,7 @@ class App(ctk.CTk):
                 step=1, max_steps=total_frames,
                 callback=lambda: self.animate(list_drones, graph_points,
                                               simulator, list_class_hubs,
-                                              all_paths)
+                                              self.all_paths_ref)
             )
 
     def interpolate_drone_movement(self, list_drones, posicoes_iniciais,
