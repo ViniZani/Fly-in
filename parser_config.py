@@ -168,6 +168,9 @@ class Parser:
                                     raise ValueError("Duplicate connection"
                                                      "detected.")
                             list_conects.append(connection)
+                        else:
+                            raise ValueError("Connection with an "
+                                                     "inexisted HUb.")
 
             return nb_drones, start_hub, list_hubs, end_hub, list_conects
         except Exception as e:
